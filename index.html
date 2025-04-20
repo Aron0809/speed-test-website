@@ -2,13 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="./vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SpeedPulse - Internet Speed Test</title>
     <meta name="description" content="Test your internet speed with real-time monitoring of download, upload, ping, and speed fluctuations." />
+    <script>
+      window.addEventListener('error', function(e) {
+        console.error('资源加载错误:', e.target.src || e.target.href);
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>

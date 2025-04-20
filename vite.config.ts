@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/', // 确保使用根路径
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
@@ -18,6 +19,10 @@ export default defineConfig({
       output: {
         // 确保代码分割符合预期
         manualChunks: undefined,
+        // 添加这些配置，确保资源路径正确
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]'
       },
     },
   },
