@@ -1,5 +1,6 @@
 name = "speed-test-website"
 compatibility_date = "2025-04-20"
+main = "workers-site/index.js"
 
 [site]
 bucket = "./dist" 
