@@ -1,0 +1,5 @@
+name = "speed-test-website"
+compatibility_date = "2025-04-20"
+
+[site]
+bucket = "./dist" 
