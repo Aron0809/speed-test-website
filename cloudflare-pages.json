@@ -1,0 +1,22 @@
+{
+  "name": "speed-test-website",
+  "build": {
+    "command": "npm run build",
+    "directory": "dist"
+  },
+  "routes": [
+    {
+      "pattern": "**",
+      "handle": "static"
+    },
+    {
+      "pattern": "/**",
+      "handle": "filesystem"
+    },
+    {
+      "pattern": "*",
+      "handle": "rewrite",
+      "target": "/index.html"
+    }
+  ]
+} 

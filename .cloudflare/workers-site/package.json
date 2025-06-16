@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "name": "workers-site",
+  "version": "1.0.0",
+  "description": "Workers site for serving Vite-built static React app",
+  "main": "index.js",
+  "author": "Speed Test Website",
+  "license": "MIT",
+  "dependencies": {
+    "@cloudflare/kv-asset-handler": "^0.2.0"
+  }
+} 
