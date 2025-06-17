@@ -1,0 +1,4 @@
+# ads.txt for SpeedPulse - Network Speed Test Website
+# Updated: 2025-01-27
+# Google AdSense
+google.com, pub-5048144519214377, DIRECT, f08c47fec0942fa0 

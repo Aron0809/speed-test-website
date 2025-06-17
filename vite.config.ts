@@ -28,7 +28,13 @@ export default defineConfig({
         // 添加这些配置，确保资源路径正确
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
-        assetFileNames: 'assets/[name].[hash].[ext]'
+        assetFileNames: (assetInfo) => {
+          // 确保ads.txt不被哈希化
+          if (assetInfo.name === 'ads.txt') {
+            return 'ads.txt'
+          }
+          return 'assets/[name].[hash].[ext]'
+        }
       },
     },
   },

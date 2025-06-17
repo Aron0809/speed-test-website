@@ -5,7 +5,7 @@
       "destination": "/api/$1"
     },
     {
-      "source": "/((?!api).*)",
+      "source": "/((?!api|ads\\.txt).*)",
       "destination": "/index.html"
     }
   ],
@@ -24,6 +24,15 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "Content-Type"
+        }
+      ]
+    },
+    {
+      "source": "/ads.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
         }
       ]
     }
