@@ -3,8 +3,8 @@ export interface SpeedTestResult {
   downloadSpeed: number;
   uploadSpeed: number;
   ping: number;
+  jitter: number;
   timestamp: Date;
-  jitter?: number;
 }
 
 // 历史数据接口，继承自SpeedTestResult并添加id

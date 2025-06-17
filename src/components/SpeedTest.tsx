@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowDown, ArrowUp, Clock } from 'lucide-react';
+import { ArrowDown, ArrowUp, Clock, Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SpeedTestResult, TestStatus } from '../types';
 import { measurePing, measureDownloadSpeed, measureUploadSpeed } from '../utils/speedTest';
@@ -42,21 +42,27 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps) => {
     setIsLoading(true);
     
     try {
-      // Step 1: Measure ping
+      // Step 1: Measure ping and jitter
+      console.log('Starting ping test...');
       const pingData = await measurePing();
       setProgress(prev => ({ ...prev, ping: pingData }));
+      console.log('Ping test completed:', pingData);
       
       // Step 2: Measure download speed
       setTestStatus('testing-download');
+      console.log('Starting download test...');
       const downloadSpeed = await measureDownloadSpeed((speed) => {
         setProgress(prev => ({ ...prev, download: [...prev.download, speed] }));
       });
+      console.log('Download test completed:', downloadSpeed);
       
       // Step 3: Measure upload speed
       setTestStatus('testing-upload');
+      console.log('Starting upload test...');
       const uploadSpeed = await measureUploadSpeed((speed) => {
         setProgress(prev => ({ ...prev, upload: [...prev.upload, speed] }));
       });
+      console.log('Upload test completed:', uploadSpeed);
       
       // Create final result
       const result: SpeedTestResult = {
@@ -70,6 +76,7 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps) => {
       setCurrentResult(result);
       setTestStatus('completed');
       onTestComplete(result);
+      console.log('Speed test completed:', result);
     } catch (error) {
       console.error('Speed test failed:', error);
       setTestStatus('idle');
@@ -82,7 +89,7 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps) => {
   const getStatusText = () => {
     switch (testStatus) {
       case 'testing-ping':
-        return t('speedTest.preparing');
+        return t('speedTest.testing') + ' ' + t('speedTest.ping').toLowerCase();
       case 'testing-download':
         return t('speedTest.testing') + ' ' + t('speedTest.download').toLowerCase();
       case 'testing-upload':
@@ -103,17 +110,20 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps) => {
   const getProgressPercentage = () => {
     switch (testStatus) {
       case 'testing-ping':
-        return 10;
+        return 25;
       case 'testing-download':
-        return 10 + (progress.download.length / 20) * 45; // 10-55%
+        return 25 + (progress.download.length / 30) * 37.5; // 25-62.5%
       case 'testing-upload':
-        return 55 + (progress.upload.length / 20) * 45; // 55-100%
+        return 62.5 + (progress.upload.length / 30) * 37.5; // 62.5-100%
       case 'completed':
         return 100;
       default:
         return 0;
     }
   };
+  
+  // 判断是否应该显示测试按钮
+  const shouldShowButton = testStatus === 'idle' || testStatus === 'completed';
   
   return (
     <div className="mb-8">
@@ -123,64 +133,100 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps) => {
       <ISPInfoComponent />
       
       <div className="text-center mb-6">
-        {isLoading && <LoadingSpinner size="medium" />}
+        {/* Loading spinner for active tests */}
+        {isLoading && testStatus !== 'completed' && (
+          <div className="mb-4">
+            <LoadingSpinner size="medium" />
+          </div>
+        )}
         
         {/* Progress bar */}
         {testStatus !== 'idle' && testStatus !== 'completed' && (
-          <ProgressBar
-            progress={getProgressPercentage()}
-            status={getStatusText()}
-          />
+          <div className="mb-4">
+            <ProgressBar
+              progress={getProgressPercentage()}
+              status={getStatusText()}
+            />
+          </div>
         )}
         
-        {/* Test button */}
-        <div 
-          onClick={runSpeedTest}
-          className={`inline-block ${testStatus !== 'idle' && testStatus !== 'completed' ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
-        >
-          <GetStartedButton />
-        </div>
+        {/* Test button - 只在空闲或完成状态显示 */}
+        {shouldShowButton && (
+          <div 
+            onClick={runSpeedTest}
+            className="inline-block cursor-pointer"
+          >
+            <GetStartedButton />
+          </div>
+        )}
+        
+        {/* 测试完成状态文字 */}
+        {testStatus === 'completed' && (
+          <div className="mt-4">
+            <p className="text-lg font-medium text-green-600 dark:text-green-400">
+              {t('speedTest.complete')}
+            </p>
+          </div>
+        )}
       </div>
       
-      {/* Gauges for real-time visualization */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      {/* Gauges for real-time visualization - 现在包含4个仪表盘 */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
           <div className="flex items-center justify-center mb-2">
-            <ArrowDown className="h-5 w-5 text-blue-500 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">{t('speedTest.download')}</h3>
+            <ArrowDown className="h-4 w-4 text-blue-500 mr-2" />
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t('speedTest.download')}</h3>
           </div>
           <SpeedGauge 
             value={testStatus === 'testing-download' || testStatus === 'testing-upload' || testStatus === 'completed' 
               ? getLatestValue(progress.download) 
               : currentResult?.downloadSpeed || 0}
-            label={t('speedTest.download')}
+            label=""
             max={100}
+            showLabel={false}
           />
         </div>
         
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
           <div className="flex items-center justify-center mb-2">
-            <ArrowUp className="h-5 w-5 text-green-500 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">{t('speedTest.upload')}</h3>
+            <ArrowUp className="h-4 w-4 text-green-500 mr-2" />
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t('speedTest.upload')}</h3>
           </div>
           <SpeedGauge 
             value={testStatus === 'testing-upload' || testStatus === 'completed' 
               ? getLatestValue(progress.upload) 
               : currentResult?.uploadSpeed || 0}
-            label={t('speedTest.upload')}
+            label=""
             max={50}
+            showLabel={false}
           />
         </div>
         
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
           <div className="flex items-center justify-center mb-2">
-            <Clock className="h-5 w-5 text-amber-500 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">{t('speedTest.ping')}</h3>
+            <Clock className="h-4 w-4 text-amber-500 mr-2" />
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t('speedTest.ping')}</h3>
           </div>
           <SpeedGauge 
-            value={progress.ping?.ping || 0}
-            label={`${t('speedTest.ping')} (${t('speedTest.ms')})`}
+            value={progress.ping?.ping || currentResult?.ping || 0}
+            label=""
             max={200}
+            showLabel={false}
+            isPing={true}
+          />
+        </div>
+        
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+          <div className="flex items-center justify-center mb-2">
+            <Activity className="h-4 w-4 text-purple-500 mr-2" />
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Jitter</h3>
+          </div>
+          <SpeedGauge 
+            value={progress.ping?.jitter || currentResult?.jitter || 0}
+            label=""
+            max={100}
+            showLabel={false}
+            isPing={true}
           />
         </div>
       </div>
@@ -208,8 +254,10 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps) => {
         )}
       </div>
       
-      {/* Display final results */}
-      {currentResult && <TestResult result={currentResult} />}
+      {/* Test results display */}
+      {currentResult && testStatus === 'completed' && (
+        <TestResult result={currentResult} />
+      )}
     </div>
   );
 };

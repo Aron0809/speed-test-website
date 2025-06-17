@@ -1,5 +1,5 @@
 import { SpeedTestResult } from '../types';
-import { formatSpeed, getSpeedRating } from '../utils/speedTest';
+import { formatSpeed, getSpeedRating, formatPing } from '../utils/speedTest';
 import { getRatingClass, getRatingLabel } from '../utils/ui-helpers';
 
 interface TestResultProps {
@@ -10,6 +10,14 @@ const TestResult = ({ result }: TestResultProps) => {
   if (!result) return null;
   
   const { downloadSpeed, uploadSpeed, ping, jitter } = result;
+  
+  // 为ping和jitter创建评级函数（值越低越好）
+  const getPingRating = (value: number) => {
+    if (value <= 20) return 'excellent';
+    if (value <= 50) return 'good';
+    if (value <= 100) return 'fair';
+    return 'poor';
+  };
   
   return (
     <div className="mt-6">
@@ -34,17 +42,17 @@ const TestResult = ({ result }: TestResultProps) => {
         
         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Ping</h3>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{ping} ms</p>
-          <p className={`text-sm font-medium mt-1 ${getRatingClass(getSpeedRating(100 - ping))}`}>
-            {getRatingLabel(getSpeedRating(100 - ping))}
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatPing(ping)}</p>
+          <p className={`text-sm font-medium mt-1 ${getRatingClass(getPingRating(ping))}`}>
+            {getRatingLabel(getPingRating(ping))}
           </p>
         </div>
         
         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Jitter</h3>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{jitter || 0} ms</p>
-          <p className={`text-sm font-medium mt-1 ${getRatingClass(getSpeedRating(100 - (jitter || 0)))}`}>
-            {getRatingLabel(getSpeedRating(100 - (jitter || 0)))}
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatPing(jitter)}</p>
+          <p className={`text-sm font-medium mt-1 ${getRatingClass(getPingRating(jitter))}`}>
+            {getRatingLabel(getPingRating(jitter))}
           </p>
         </div>
       </div>

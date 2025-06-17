@@ -7,13 +7,17 @@ interface SpeedGaugeProps {
   label: string;
   max?: number;
   animate?: boolean;
+  showLabel?: boolean;
+  isPing?: boolean;
 }
 
 const SpeedGauge = ({ 
   value, 
   label, 
   max = 100, 
-  animate = true 
+  animate = true,
+  showLabel = true,
+  isPing = false
 }: SpeedGaugeProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const targetValue = useRef<number>(value);
@@ -45,23 +49,46 @@ const SpeedGauge = ({
     const percentage = Math.min(currentValue.current, max) / max;
     const endAngle = Math.PI + percentage * Math.PI;
 
+    // 为ping和jitter使用不同的颜色逻辑
+    let displayColor = color;
+    if (isPing) {
+      // ping和jitter值越低越好，使用反向颜色逻辑
+      if (currentValue.current <= 20) displayColor = '#10b981'; // green
+      else if (currentValue.current <= 50) displayColor = '#f59e0b'; // amber
+      else displayColor = '#ef4444'; // red
+    }
+
     // 绘制数值圆弧
-    drawArc(ctx, centerX, centerY, radius, Math.PI, endAngle, color);
+    drawArc(ctx, centerX, centerY, radius, Math.PI, endAngle, displayColor);
 
     // 绘制中央文本
     ctx.fillStyle = themeColors.text;
-    ctx.font = 'bold 24px sans-serif';
+    ctx.font = 'bold 18px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`${currentValue.current.toFixed(1)}`, centerX, centerY - 10);
+    
+    // 根据是否是ping类型调整显示格式
+    let displayValue: string;
+    if (isPing) {
+      displayValue = `${Math.round(currentValue.current)}`;
+    } else {
+      displayValue = currentValue.current < 1 ? 
+        `${(currentValue.current * 1000).toFixed(0)}` : 
+        `${currentValue.current.toFixed(1)}`;
+    }
+    
+    ctx.fillText(displayValue, centerX, centerY - 8);
     
     // 绘制单位文本
-    ctx.font = '14px sans-serif';
-    ctx.fillText('Mbps', centerX, centerY + 15);
+    ctx.font = '11px sans-serif';
+    const unit = isPing ? 'ms' : (currentValue.current < 1 ? 'Kbps' : 'Mbps');
+    ctx.fillText(unit, centerX, centerY + 12);
     
-    // 绘制标签文本
-    ctx.font = '16px sans-serif';
-    ctx.fillText(label, centerX, centerY + 50);
+    // 绘制标签文本（如果启用）
+    if (showLabel && label) {
+      ctx.font = '12px sans-serif';
+      ctx.fillText(label, centerX, centerY + 35);
+    }
   };
 
   const animateGauge = () => {
@@ -110,11 +137,11 @@ const SpeedGauge = ({
   }, []);
 
   return (
-    <div className="relative w-full h-48">
+    <div className="relative w-full h-32">
       <canvas 
         ref={canvasRef} 
-        width="200" 
-        height="200" 
+        width="140" 
+        height="140" 
         className="w-full h-full"
       ></canvas>
     </div>
